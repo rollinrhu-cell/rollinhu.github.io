@@ -38,26 +38,26 @@ export default function ThemeBucket({
   return (
     <div className="flex flex-col h-full">
       {/* Theme header */}
-      <div className="px-6 py-4 border-b border-gray-100 bg-white flex-shrink-0">
+      <div className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0">
         {editingTheme ? (
           <div className="space-y-2">
             <input
               type="text"
               value={themeName}
               onChange={e => setThemeName(e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             />
             <input
               type="text"
               value={themeDesc}
               onChange={e => setThemeDesc(e.target.value)}
               placeholder="Description (optional)"
-              className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
             />
             <div className="flex gap-2">
               <button
                 onClick={() => { setEditingTheme(false); setThemeName(theme.name); setThemeDesc(theme.description) }}
-                className="px-3 py-1 text-xs text-gray-600 border border-gray-200 rounded hover:bg-gray-50"
+                className="px-3 py-1 text-xs text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700"
               >
                 Cancel
               </button>
@@ -75,17 +75,17 @@ export default function ThemeBucket({
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: theme.color }} />
-                <h2 className="text-lg font-semibold text-gray-900">{theme.name}</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{theme.name}</h2>
               </div>
               {theme.description && (
-                <p className="text-sm text-gray-500">{theme.description}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{theme.description}</p>
               )}
-              <p className="text-xs text-gray-400 mt-1">{passages.length} passage{passages.length !== 1 ? 's' : ''}</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{passages.length} passage{passages.length !== 1 ? 's' : ''}</p>
             </div>
             <div className="flex items-center gap-1 flex-shrink-0">
               <button
                 onClick={() => setEditingTheme(true)}
-                className="text-gray-400 hover:text-gray-600 p-1.5 rounded hover:bg-gray-100 transition-colors"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 title="Edit theme"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -98,7 +98,7 @@ export default function ThemeBucket({
                     onDeleteTheme(theme.id)
                   }
                 }}
-                className="text-gray-400 hover:text-red-500 p-1.5 rounded hover:bg-red-50 transition-colors"
+                className="text-gray-400 hover:text-red-500 p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                 title="Delete theme"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -113,8 +113,8 @@ export default function ThemeBucket({
       {/* Passages */}
       <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
         {passages.length === 0 ? (
-          <div className="text-center py-12 text-gray-400">
-            <svg className="w-10 h-10 mx-auto mb-3 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="text-center py-12 text-gray-400 dark:text-gray-500">
+            <svg className="w-10 h-10 mx-auto mb-3 text-gray-200 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
             </svg>
             <p className="text-sm">No passages yet</p>
@@ -162,19 +162,19 @@ function PassageCard({
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
       {/* Passage text */}
       <div className="p-4 border-l-4" style={{ borderLeftColor: themeColor }}>
-        <blockquote className="text-sm text-gray-700 leading-relaxed italic">
+        <blockquote className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed italic">
           "{passage.text}"
         </blockquote>
         {source && (
-          <p className="text-xs text-gray-400 mt-2 font-medium">— {source.title}</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-2 font-medium">— {source.title}</p>
         )}
       </div>
 
       {/* Note section */}
-      <div className="px-4 pb-4 pt-2 bg-gray-50 border-t border-gray-100">
+      <div className="px-4 pb-4 pt-2 bg-gray-50 dark:bg-gray-800/60 border-t border-gray-100 dark:border-gray-700">
         {editing ? (
           <div className="space-y-2">
             <textarea
@@ -183,21 +183,21 @@ function PassageCard({
               placeholder="Add your notes or analysis…"
               rows={3}
               autoFocus
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+              className="w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
             />
             <div className="flex items-center justify-between">
               <button
                 onClick={() => {
                   if (confirm('Remove this passage from the theme?')) onRemove(passage.id)
                 }}
-                className="text-xs text-red-400 hover:text-red-600"
+                className="text-xs text-red-400 hover:text-red-600 dark:hover:text-red-400"
               >
                 Remove passage
               </button>
               <div className="flex gap-2">
                 <button
                   onClick={() => { setEditing(false); setNote(passage.note || '') }}
-                  className="px-3 py-1 text-xs text-gray-600 border border-gray-200 rounded hover:bg-white"
+                  className="px-3 py-1 text-xs text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 rounded hover:bg-white dark:hover:bg-gray-700"
                 >
                   Cancel
                 </button>
@@ -217,9 +217,9 @@ function PassageCard({
             onClick={() => setEditing(true)}
           >
             {note ? (
-              <p className="text-sm text-gray-600 group-hover:text-gray-800">{note}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200">{note}</p>
             ) : (
-              <p className="text-xs text-gray-400 group-hover:text-gray-500 italic">
+              <p className="text-xs text-gray-400 dark:text-gray-500 group-hover:text-gray-500 dark:group-hover:text-gray-400 italic">
                 Click to add a note or analysis…
               </p>
             )}

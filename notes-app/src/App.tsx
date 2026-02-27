@@ -44,7 +44,7 @@ export default function App() {
     localStorage.setItem('darkMode', String(darkMode))
   }, [darkMode])
 
-  const { sources, createSource, removeSource } = useSources(activeProjectId)
+  const { sources, createSource, updateSource, removeSource } = useSources(activeProjectId)
   const { themes, createTheme, updateTheme, removeTheme } = useThemes(activeProjectId)
   const { passages, createPassage, updatePassage, removePassage, getPassagesForTheme } = usePassages(activeProjectId)
 
@@ -207,6 +207,7 @@ export default function App() {
           onCreatePassage={async (text, themeIds) => { await createPassage(source.id, text, themeIds) }}
           onDeleteSource={id => { removeSource(id); setPane(which, defaultPane()) }}
           onCreateTheme={async name => { const t = await createTheme(name); return t as Theme | undefined }}
+          onToggleRead={() => updateSource(source.id, { readAt: source.readAt ? undefined : Date.now() })}
         />
       )
     }
@@ -424,8 +425,8 @@ export default function App() {
       {showNewSource && (
         <NewSourceModal
           onClose={() => setShowNewSource(false)}
-          onSave={async (title, content, type, url) => {
-            const source = await createSource(title, content, type, url)
+          onSave={async (title, content, type, options) => {
+            const source = await createSource(title, content, type, options)
             if (source) handleSelectSource(source.id, 1)
             setShowNewSource(false)
           }}

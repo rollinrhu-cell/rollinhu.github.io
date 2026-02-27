@@ -28,7 +28,7 @@ export function useSources(projectId: string | null) {
     title: string,
     content: string,
     type: SourceType,
-    url?: string
+    options?: { url?: string; author?: string; publishedDate?: string }
   ) => {
     if (!projectId) return
     const source: Source = {
@@ -37,7 +37,9 @@ export function useSources(projectId: string | null) {
       type,
       title,
       content,
-      url,
+      url: options?.url,
+      author: options?.author,
+      publishedDate: options?.publishedDate,
       createdAt: Date.now(),
     }
     await saveSource(source)
@@ -45,10 +47,17 @@ export function useSources(projectId: string | null) {
     return source
   }, [projectId, refresh])
 
+  const updateSource = useCallback(async (id: string, updates: Partial<Source>) => {
+    const source = sources.find(s => s.id === id)
+    if (!source) return
+    await saveSource({ ...source, ...updates })
+    await refresh()
+  }, [sources, refresh])
+
   const removeSource = useCallback(async (id: string) => {
     await deleteSource(id)
     await refresh()
   }, [refresh])
 
-  return { sources, loading, createSource, removeSource, refresh }
+  return { sources, loading, createSource, updateSource, removeSource, refresh }
 }

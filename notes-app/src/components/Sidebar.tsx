@@ -413,7 +413,10 @@ function SortableProjectRow({
               onContextMenu={onContextMenuSource}
             >
               <SourceIcon type={source.type} />
-              <span className="truncate">{source.title}</span>
+              <span className="truncate flex-1">{source.title}</span>
+              {source.readAt && (
+                <span className="w-2 h-2 rounded-full bg-green-400 flex-shrink-0" title="Read" />
+              )}
             </button>
           ))}
 

@@ -14,6 +14,9 @@ export interface Source {
   title: string
   content: string
   url?: string
+  author?: string
+  publishedDate?: string
+  readAt?: number
   createdAt: number
 }
 

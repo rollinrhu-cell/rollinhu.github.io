@@ -5,6 +5,7 @@ interface PassagePopover {
   text: string
   x: number
   y: number
+  flipUp: boolean
 }
 
 interface SourceViewerProps {
@@ -14,6 +15,7 @@ interface SourceViewerProps {
   onCreatePassage: (text: string, themeIds: string[]) => Promise<void>
   onDeleteSource: (id: string) => void
   onCreateTheme: (name: string) => Promise<Theme | undefined>
+  onToggleRead: () => void
 }
 
 // Render a paragraph with inline passage highlights and theme tooltips
@@ -81,6 +83,7 @@ export default function SourceViewer({
   onCreatePassage,
   onDeleteSource,
   onCreateTheme,
+  onToggleRead,
 }: SourceViewerProps) {
   const [popover, setPopover] = useState<PassagePopover | null>(null)
   const [selectedThemeIds, setSelectedThemeIds] = useState<string[]>([])
@@ -105,10 +108,13 @@ export default function SourceViewer({
 
     const range = selection.getRangeAt(0)
     const rect = range.getBoundingClientRect()
+    const POPUP_HEIGHT_EST = 320
+    const flipUp = (window.innerHeight - rect.bottom) < POPUP_HEIGHT_EST + 16
     setPopover({
       text,
       x: rect.left + rect.width / 2,
-      y: rect.bottom + window.scrollY + 8,
+      y: flipUp ? rect.top - 8 : rect.bottom + 8,
+      flipUp,
     })
     setSelectedThemeIds([])
     setShowNewTheme(false)
@@ -190,9 +196,35 @@ export default function SourceViewer({
               )}
             </div>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{source.title}</h2>
+            {(source.author || source.publishedDate) && (
+              <div className="flex items-center gap-2 mt-1 flex-wrap">
+                {source.author && (
+                  <span className="text-xs text-gray-500 dark:text-gray-400">{source.author}</span>
+                )}
+                {source.author && source.publishedDate && (
+                  <span className="text-xs text-gray-300 dark:text-gray-600">·</span>
+                )}
+                {source.publishedDate && (
+                  <span className="text-xs text-gray-500 dark:text-gray-400">{source.publishedDate}</span>
+                )}
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             <span className="text-xs text-gray-400 dark:text-gray-500">{sourcePassages.length} passages</span>
+            <button
+              onClick={onToggleRead}
+              className={`p-1.5 rounded transition-colors ${
+                source.readAt
+                  ? 'text-green-500 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30'
+                  : 'text-gray-400 hover:text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20'
+              }`}
+              title={source.readAt ? 'Mark as unread' : 'Mark as read'}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </button>
             <button
               onClick={() => {
                 if (confirm(`Delete "${source.title}"? This will also remove all passages from this source.`)) {
@@ -227,8 +259,9 @@ export default function SourceViewer({
           ref={popoverRef}
           className="fixed z-50 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 p-4 w-80"
           style={{
-            left: Math.min(popover.x - 160, window.innerWidth - 340),
+            left: Math.min(Math.max(popover.x - 160, 8), window.innerWidth - 340),
             top: popover.y,
+            transform: popover.flipUp ? 'translateY(calc(-100% - 8px))' : undefined,
           }}
         >
           <div className="mb-3">

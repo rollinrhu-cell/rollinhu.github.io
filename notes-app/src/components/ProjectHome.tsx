@@ -102,10 +102,15 @@ export default function ProjectHome({
                     <span className="text-xs uppercase font-medium px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 flex-shrink-0 mt-0.5">
                       {source.type}
                     </span>
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate group-hover:text-indigo-700 dark:group-hover:text-indigo-400">
-                        {source.title}
-                      </p>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate group-hover:text-indigo-700 dark:group-hover:text-indigo-400">
+                          {source.title}
+                        </p>
+                        {source.readAt && (
+                          <span className="w-2 h-2 rounded-full bg-green-400 flex-shrink-0" title="Read" />
+                        )}
+                      </div>
                       {source.content && (
                         <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 line-clamp-1">
                           {source.content.slice(0, 100)}

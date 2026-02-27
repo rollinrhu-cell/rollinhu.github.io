@@ -1,9 +1,10 @@
 import { useState, useRef } from 'react'
+import { Readability } from '@mozilla/readability'
 import type { SourceType } from '../db/types'
 
 interface NewSourceModalProps {
   onClose: () => void
-  onSave: (title: string, content: string, type: SourceType, url?: string) => Promise<void>
+  onSave: (title: string, content: string, type: SourceType, options?: { url?: string; author?: string; publishedDate?: string }) => Promise<void>
 }
 
 type Tab = 'text' | 'url' | 'upload' | 'note'
@@ -13,6 +14,8 @@ export default function NewSourceModal({ onClose, onSave }: NewSourceModalProps)
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [url, setUrl] = useState('')
+  const [author, setAuthor] = useState('')
+  const [publishedDate, setPublishedDate] = useState('')
   const [fetchStatus, setFetchStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [fetchError, setFetchError] = useState('')
   const [saving, setSaving] = useState(false)
@@ -29,13 +32,20 @@ export default function NewSourceModal({ onClose, onSave }: NewSourceModalProps)
       if (!res.ok) throw new Error('Fetch failed')
       const data = await res.json()
       const html: string = data.contents || ''
-      const text = stripHtml(html)
+
+      // Parse with Mozilla Readability for clean article extraction
+      const doc = new DOMParser().parseFromString(html, 'text/html')
+      const base = doc.createElement('base')
+      base.href = url.trim()
+      doc.head.prepend(base)
+      const article = new Readability(doc).parse()
+
+      const text = article?.textContent?.trim() ?? ''
       if (!text || text.length < 50) throw new Error('Could not extract readable content')
+
       setContent(text)
-      if (!title) {
-        const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i)
-        if (titleMatch) setTitle(titleMatch[1].trim().slice(0, 120))
-      }
+      if (!title && article?.title) setTitle(article.title.slice(0, 120))
+      if (!author && article?.byline) setAuthor(article.byline.trim())
       setFetchStatus('idle')
     } catch {
       setFetchStatus('error')
@@ -104,7 +114,11 @@ export default function NewSourceModal({ onClose, onSave }: NewSourceModalProps)
       const type: SourceType = tab === 'note' ? 'note' : tab === 'url' ? 'url' : tab === 'upload' ? (
         fileRef.current?.files?.[0]?.name.endsWith('.pdf') ? 'pdf' : 'docx'
       ) : 'text'
-      await onSave(trimmedTitle, trimmedContent, type, tab === 'url' ? url.trim() : undefined)
+      await onSave(trimmedTitle, trimmedContent, type, {
+        url: tab === 'url' ? url.trim() : undefined,
+        author: author.trim() || undefined,
+        publishedDate: publishedDate.trim() || undefined,
+      })
       onClose()
     } finally {
       setSaving(false)
@@ -167,29 +181,54 @@ export default function NewSourceModal({ onClose, onSave }: NewSourceModalProps)
 
           {/* URL tab */}
           {tab === 'url' && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">URL</label>
-              <div className="flex gap-2">
-                <input
-                  type="url"
-                  value={url}
-                  onChange={e => setUrl(e.target.value)}
-                  placeholder="https://example.com/article"
-                  className="flex-1 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
-                  onKeyDown={e => { if (e.key === 'Enter') handleFetchUrl() }}
-                />
-                <button
-                  onClick={handleFetchUrl}
-                  disabled={fetchStatus === 'loading'}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors"
-                >
-                  {fetchStatus === 'loading' ? 'Fetching…' : 'Fetch'}
-                </button>
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">URL</label>
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={url}
+                    onChange={e => setUrl(e.target.value)}
+                    placeholder="https://example.com/article"
+                    className="flex-1 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+                    onKeyDown={e => { if (e.key === 'Enter') handleFetchUrl() }}
+                  />
+                  <button
+                    onClick={handleFetchUrl}
+                    disabled={fetchStatus === 'loading'}
+                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                  >
+                    {fetchStatus === 'loading' ? 'Fetching…' : 'Fetch'}
+                  </button>
+                </div>
+                {fetchError && (
+                  <p className="mt-1.5 text-xs text-amber-600 dark:text-amber-400">{fetchError}</p>
+                )}
               </div>
-              {fetchError && (
-                <p className="mt-1.5 text-xs text-amber-600 dark:text-amber-400">{fetchError}</p>
-              )}
-            </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Author</label>
+                  <input
+                    type="text"
+                    value={author}
+                    onChange={e => setAuthor(e.target.value)}
+                    placeholder="e.g. Jane Smith"
+                    className="w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date published</label>
+                  <input
+                    type="text"
+                    value={publishedDate}
+                    onChange={e => setPublishedDate(e.target.value)}
+                    placeholder="e.g. March 2024"
+                    className="w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+                  />
+                </div>
+              </div>
+            </>
           )}
 
           {/* Upload tab */}
@@ -257,21 +296,4 @@ export default function NewSourceModal({ onClose, onSave }: NewSourceModalProps)
       </div>
     </div>
   )
-}
-
-function stripHtml(html: string): string {
-  // Remove script/style tags and their contents
-  let text = html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, ' ')
-    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, ' ')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&nbsp;/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-  return text
 }

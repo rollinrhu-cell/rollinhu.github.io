@@ -59,7 +59,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Tech Stack
 
-- **Next.js 15** with App Router
+- **Next.js 16** with App Router
 - **TypeScript**
 - **Tailwind CSS** for styling
 - **SQLite** (via better-sqlite3) for local data storage
